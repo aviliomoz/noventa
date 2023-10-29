@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "../components/logo";
-import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/auth-context";
 
 const titles: {
   path: string;
@@ -25,17 +25,12 @@ export function AuthLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const { session, loading } = useAuth();
 
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        if (session) {
-          navigate("/habits");
-        }
-      })
-      .finally(() => setLoading(false));
+    if (!loading && session) {
+      navigate("/habits");
+    }
   }, [pathname]);
 
   if (loading) return <></>;

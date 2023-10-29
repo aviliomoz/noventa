@@ -3,11 +3,18 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { toast } from "react-hot-toast";
 
+type Profile = {
+  id: string;
+  name: string;
+};
+
 type AuthContextType = {
-  session: Session | null;
+  session: Session | null | undefined;
+  profile: Profile | null | undefined;
   signin: (email: string) => Promise<void>;
   signup: (email: string) => Promise<void>;
   signout: () => Promise<void>;
+  loading: boolean;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -25,13 +32,30 @@ type ProviderProps = {
 };
 
 export const AuthContextProvider = ({ children }: ProviderProps) => {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session | null | undefined>();
+  const [profile, setProfile] = useState<Profile | null | undefined>();
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => setSession(session));
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      supabase
+        .from("profiles")
+        .select()
+        .eq("id", session.user.id)
+        .single()
+        .then(({ data }) => setProfile(data));
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (session !== undefined && profile !== undefined) setLoading(false);
+  }, [session, profile]);
 
   const signin = async (email: string) => {
     try {
@@ -77,7 +101,9 @@ export const AuthContextProvider = ({ children }: ProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, signin, signup, signout }}>
+    <AuthContext.Provider
+      value={{ session, profile, signin, signup, signout, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { FormEvent, useState } from "react";
 import { toast } from "react-hot-toast";
-import { signUpSchema } from "../schemas/auth.schemas";
-import { useAuth } from "../contexts/auth.context";
+import { signUpSchema } from "../schemas/auth-schema";
+import { useAuth } from "../contexts/auth-context";
 
 export function SignUpForm() {
   const { signup } = useAuth();
