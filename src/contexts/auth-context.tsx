@@ -2,19 +2,13 @@ import { Session } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { toast } from "react-hot-toast";
-
-type Profile = {
-  id: string;
-  name: string;
-};
+import { useNavigate, useLocation } from "react-router-dom";
 
 type AuthContextType = {
-  session: Session | null | undefined;
-  profile: Profile | null | undefined;
-  signin: (email: string) => Promise<void>;
-  signup: (email: string) => Promise<void>;
+  session: Session | null;
+  signin: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<void>;
   signout: () => Promise<void>;
-  loading: boolean;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -32,59 +26,53 @@ type ProviderProps = {
 };
 
 export const AuthContextProvider = ({ children }: ProviderProps) => {
-  const [session, setSession] = useState<Session | null | undefined>();
-  const [profile, setProfile] = useState<Profile | null | undefined>();
-  const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => setSession(session));
-  }, []);
+  }, [pathname]);
 
-  useEffect(() => {
-    if (session) {
-      supabase
-        .from("profiles")
-        .select()
-        .eq("id", session.user.id)
-        .single()
-        .then(({ data }) => setProfile(data));
-    }
-  }, [session]);
-
-  useEffect(() => {
-    if (session !== undefined && profile !== undefined) setLoading(false);
-  }, [session, profile]);
-
-  const signin = async (email: string) => {
+  const signin = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        options: {
-          shouldCreateUser: false,
-        },
+        password,
       });
 
-      if (error) throw new Error();
+      if (error || !data) throw new Error();
 
-      toast.success("Se ha enviado un enlace de inicio de sesión a tu correo");
+      setSession(data.session);
+
+      navigate("/habits");
     } catch (error) {
       toast.error("Ha ocurrido un error al iniciar sesión");
     }
   };
 
-  const signup = async (email: string) => {
+  const signup = async (email: string, password: string, name: string) => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signUp({
         email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
       });
 
-      if (error) throw new Error();
+      if (error || !data) throw new Error();
 
-      toast.success("Se ha enviado un enlace de inicio de sesión a tu correo");
+      setSession(data.session);
+
+      navigate("/habits");
     } catch (error) {
-      toast.error("Ha ocurrido un error al iniciar sesión");
+      toast.error("Ha ocurrido un error al registrar el usuario");
     }
   };
 
@@ -94,16 +82,16 @@ export const AuthContextProvider = ({ children }: ProviderProps) => {
 
       if (error) throw new Error();
 
-      toast.success("Se ha cerrado tu sesión");
+      setSession(null);
+
+      navigate("/");
     } catch (error) {
       toast.error("Ha ocurrido un error al cerrar sesión");
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{ session, profile, signin, signup, signout, loading }}
-    >
+    <AuthContext.Provider value={{ session, signin, signup, signout }}>
       {children}
     </AuthContext.Provider>
   );

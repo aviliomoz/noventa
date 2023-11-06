@@ -12,26 +12,23 @@ export function AppLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { session, profile, loading } = useAuth();
+  const { session } = useAuth();
 
   useEffect(() => {
-    if (!loading && !session) {
+    if (!session) {
       navigate("/auth/sign-in");
     }
-  }, [pathname]);
-
-  if (loading) return <></>;
+  }, [pathname, session]);
 
   return (
     <>
-      {console.log(profile)}
       <header className="h-16 border-b border-zinc-100 px-28 flex items-center justify-between bg-white">
         <div className="flex gap-10 h-full">
           <Logo />
           <Navigation />
         </div>
         <div className="flex items-center gap-6">
-          {profile && <Profile />}
+          {<Profile />}
           <SettingsButton />
           <SignoutButton />
         </div>

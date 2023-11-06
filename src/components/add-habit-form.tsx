@@ -62,7 +62,7 @@ export function AddHabitForm() {
     if (session) {
       const { error } = await supabase.from("habits").insert({
         description,
-        profile_id: session.user.id,
+        user_id: session.user.id,
       });
     }
   };

@@ -8,6 +8,7 @@ export function SignInForm() {
   const { signin } = useAuth();
 
   const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
@@ -15,13 +16,14 @@ export function SignInForm() {
 
     const validation = signInSchema.safeParse({
       email: email.length === 0 ? undefined : email,
+      password: password.length === 0 ? undefined : password,
     });
 
     if (!validation.success)
       return toast.error(validation.error.errors[0].message);
 
     setLoading(true);
-    await signin(validation.data.email);
+    await signin(validation.data.email, validation.data.password);
     setLoading(false);
   };
 
@@ -37,6 +39,15 @@ export function SignInForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+        />
+      </label>
+      <label className="flex items-center gap-3 w-full">
+        <p>Password:</p>
+        <input
+          className="outline-none px-2 py-0.5 border rounded-md w-full"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </label>
       <button

@@ -25,15 +25,13 @@ export function AuthLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { session, loading } = useAuth();
+  const { session } = useAuth();
 
   useEffect(() => {
-    if (!loading && session) {
+    if (session) {
       navigate("/habits");
     }
-  }, [pathname]);
-
-  if (loading) return <></>;
+  }, [pathname, session]);
 
   return (
     <>

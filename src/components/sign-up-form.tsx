@@ -8,6 +8,9 @@ export function SignUpForm() {
   const { signup } = useAuth();
 
   const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [name, setName] = useState<string>("");
+
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
@@ -15,13 +18,19 @@ export function SignUpForm() {
 
     const validation = signUpSchema.safeParse({
       email: email.length === 0 ? undefined : email,
+      password: password.length === 0 ? undefined : password,
+      name: name.length === 0 ? undefined : name,
     });
 
     if (!validation.success)
       return toast.error(validation.error.errors[0].message);
 
     setLoading(true);
-    await signup(validation.data.email);
+    await signup(
+      validation.data.email,
+      validation.data.password,
+      validation.data.name
+    );
     setLoading(false);
   };
 
@@ -31,12 +40,30 @@ export function SignUpForm() {
       className="flex flex-col w-1/5 min-w-[300px] mt-2 items-center gap-2"
     >
       <label className="flex items-center gap-3 w-full">
+        <p>Name:</p>
+        <input
+          className="outline-none px-2 py-0.5 border rounded-md w-full"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </label>
+      <label className="flex items-center gap-3 w-full">
         <p>Email:</p>
         <input
           className="outline-none px-2 py-0.5 border rounded-md w-full"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+        />
+      </label>
+      <label className="flex items-center gap-3 w-full">
+        <p>Password:</p>
+        <input
+          className="outline-none px-2 py-0.5 border rounded-md w-full"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </label>
       <button

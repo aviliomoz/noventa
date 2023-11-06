@@ -1,7 +1,5 @@
-import { useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { supabase } from "./lib/supabase";
 
 // Routes
 import { AuthLayout } from "./layouts/auth-layout";
@@ -15,20 +13,6 @@ import { SignInForm } from "./components/sign-in-form";
 import { SignUpForm } from "./components/sign-up-form";
 
 function App() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") navigate("/");
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
   return (
     <>
       <Routes>
